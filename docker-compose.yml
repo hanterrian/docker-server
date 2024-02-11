@@ -1,0 +1,41 @@
+version: '3'
+services:
+    web:
+        build:
+            context: .docker/nginx
+        volumes:
+            - ./web:/var/www/html
+            - ./logs/nginx:/var/log/nginx
+            - ./.docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+        ports:
+            - "80:80"
+        depends_on:
+            - php-fpm
+
+    php-fpm:
+        build:
+            context: .docker/php
+        volumes:
+            - ./web:/var/www/html
+
+    mysql-db:
+        image: mysql:8.0
+        environment:
+            MYSQL_ROOT_PASSWORD: password
+            MYSQL_DATABASE: test_database
+            MYSQL_USER: db_user
+            MYSQL_PASSWORD: password
+        ports:
+            - "3306:3306"
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        links:
+            # Links the PHPMyAdmin service to the MySQL database service
+            - mysql-db
+        ports:
+            - "8081:80"
+        environment:
+            PMA_HOST: mysql-db
+            # Use MySQL root password for PHPMyAdmin
+            MYSQL_ROOT_PASSWORD: password
